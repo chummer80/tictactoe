@@ -1,0 +1,22 @@
+User should be able to:
+
+	*See the board
+	*Play a square
+	*Wait for opponent to play a square
+	*Be informed of a win condition and who won
+	Sign up with a username
+	Log in with username
+	View their win-loss record
+	View rankings
+		Sort rankings by points
+		Sort rankings by win %
+		Sort rankings by username
+	Choose board size 
+	Choose winning line length
+	*Play a single player game vs. computer
+	*Look for a 2 player game
+		*Automatically start a game when match is found
+		Send emote/message
+		See time limit for both players' moves
+			Play a random move when time expires
+	Choose to play a re-match
