@@ -1,5 +1,12 @@
-User should be able to:
+Wireframes:
+	Landing page view:
+		https://wireframe.cc/Hjwqhd
+	Game view:
+		https://wireframe.cc/66kbz2
 
+
+
+User should be able to:
 	*See the board
 	*Play a square
 	*Wait for opponent to play a square

@@ -1,8 +1,11 @@
 * {
 	outline: 1px dotted red;
+	box-sizing: border-box;
 }
 
-
+body {
+	background-color: grey;
+}
 
 #game_board {
 	border-collapse: collapse;
@@ -20,18 +23,45 @@
 	border-bottom: 0;
 }
 
-#game_board tr td {
+#game_board td {
+	position: relative;
+	width: 7rem;
+	height: 7rem;
 	border-left: 1rem solid black;
 	border-right: 1rem solid black;
 }
-#game_board tr td:first-child {
+#game_board td:first-child {
 	border-left: 0;
 }
-#game_board tr td:last-child {
+#game_board td:last-child {
 	border-right: 0;
 }
 
-#game_board td {
-	width: 7rem;
-	height: 7rem
+
+#game_board td .highlight {
+	opacity: 0.0;
+	-webkit-transition: opacity 0.2s;
+    transition: opacity 0.2s;
+
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: rgba(255,255,255,1);
+}
+#game_board td:hover .highlight {
+	opacity: 0.4;
+}
+
+.blue {
+	background-color: lightblue;
+	-webkit-transition: background-color 0.8s;
+    transition: background-color 0.8s;
+}
+
+.orange {
+	background-color: orange;
+	-webkit-transition: background-color 0.8s;
+    transition: background-color 0.8s;
 }
