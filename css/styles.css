@@ -1,10 +1,33 @@
+@import url(http://fonts.googleapis.com/css?family=Lato);
+
+@font-face {
+	font-family: Nudely;
+	src: url('../fonts/nudely.otf');
+}
+
 * {
 	outline: 1px dotted red;
 	box-sizing: border-box;
 }
 
+.hidden {
+	display: none;
+}
+
 body {
-	background-color: grey;
+	background-color: silver;
+	font-family: "Lato", sans-serif; 
+}
+
+header {
+	font-family: "Nudely", sans-serif; 
+	background-color: white;
+	height: 4rem;
+}
+
+header h1 {
+	margin: 0;
+	text-align: center;
 }
 
 #game_board {
@@ -54,8 +77,10 @@ body {
 	opacity: 0.4;
 }
 
+
 .blue {
 	background-color: lightblue;
+	/*background-color: dodgerblue;*/
 	-webkit-transition: background-color 0.8s;
     transition: background-color 0.8s;
 }

@@ -16,8 +16,8 @@ function GameController() {
 
 
 	this.cellClick = function(row, col) {
-		// only finish the move if empty cell was clicked
-		if (this.gameBoard[row][col] === null) {
+		// only finish the move if empty cell was clicked and game hasn't been won yet
+		if (this.gameBoard[row][col] === null && this.winnerIndex === null) {
 			// claim this cell. It now belongs to the current player.
 			this.gameBoard[row][col] = this.currentPlayerIndex;
 			
@@ -26,7 +26,7 @@ function GameController() {
 				this.winnerIndex = this.currentPlayerIndex;
 			}
 
-			// toggle current player
+			// toggle player's turn
 			this.currentPlayerIndex = 1 - this.currentPlayerIndex;
 		}
 	};
