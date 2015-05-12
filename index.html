@@ -12,18 +12,20 @@
 </head>
 <body ng-controller="GameController as game">
 	<header>
-		<h1>Tic Tac Toe</h1>
-
+		<h1>
+			<span class="orange_fill_text">Tic</span>
+			<span class="blue_fill_text">Tac</span>
+			<span class="orange_fill_text">Toe</span>
+		</h1>
 	</header>
 
 	<table id="game_board">
 		<tr ng-repeat="row in game.gameBoard track by $index" ng-init="rowIndex = $index">
 			<td ng-repeat="col in game.gameBoard[rowIndex] track by $index" ng-init="colIndex = $index" ng-click="game.cellClick(rowIndex, colIndex); game.test()" ng-class="{blue:game.gameBoard[rowIndex][colIndex] === 0, orange: game.gameBoard[rowIndex][colIndex] === 1}">
-				{{game.gameBoard[rowIndex][colIndex]}}
 				<div class="highlight" ng-class="{hidden: game.gameBoard[rowIndex][colIndex] != null || game.winnerIndex != null}"></div>
 			</td>
 		</tr>
 	</table>
-	<h1 ng-show="game.winnerIndex === 0 || game.winnerIndex === 1">Player {{game.winnerIndex + 1}} WINS!</h1>
+	<h1 id="winner_msg" ng-show="game.winnerIndex != null">{{game.getWinMsg()}}</h1>
 </body>
 </html>

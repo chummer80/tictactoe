@@ -4,11 +4,12 @@ angular
 
 function GameController() {
 
-	this.winLineLength = 4;
-	this.gameBoardSize = 4;
+	this.winLineLength = 3;
+	this.gameBoardSize = 3;
 
 	this.currentPlayerIndex = 0;
 	this.winnerIndex = null;
+	this.moveCount = 0;
 
 	// this.gameBoard will be a 2D array that hold a player index in each cell to indicate which
 	// player has claimed that cell. If no one has claimed it then it holds null.
@@ -20,14 +21,21 @@ function GameController() {
 		if (this.gameBoard[row][col] === null && this.winnerIndex === null) {
 			// claim this cell. It now belongs to the current player.
 			this.gameBoard[row][col] = this.currentPlayerIndex;
+			this.moveCount++;
 			
 			// check win condition
 			if (this.checkPlayerWin(this.currentPlayerIndex)) {
 				this.winnerIndex = this.currentPlayerIndex;
 			}
+			// if there are no more available spaces it's a draw
+			else if (this.moveCount >= (this.gameBoardSize * this.gameBoardSize)) {
+				this.winnerIndex = -1;
+			}
+			// toggle which player's turn it is
+			else {
+				this.currentPlayerIndex = 1 - this.currentPlayerIndex;
+			}
 
-			// toggle player's turn
-			this.currentPlayerIndex = 1 - this.currentPlayerIndex;
 		}
 	};
 	
@@ -153,10 +161,19 @@ function GameController() {
 		return false;
 	};
 
-	// check if there is a winner and return the winning player's index if there is one.
-	// Otherwise return 0 to indicate there is not winner yet
-	this.getWinner = function() {
+
+	this.getWinMsg = function() {
+		if (this.winnerIndex === null) {
+			return "";
+		}
+		else if (this.winnerIndex === -1) {
+			return "DRAW";
+		}
+		else {
+			return "Player " + (this.winnerIndex + 1) + " WINS!";
+		}
 	};
+
 
 	// initialize game board
 	this.resetGame = function() {
