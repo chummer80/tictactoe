@@ -1,2 +1,2 @@
-angular.module("tictactoe", []);
+angular.module('tictactoe', ['firebase']);
 
