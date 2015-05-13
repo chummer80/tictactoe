@@ -13,15 +13,16 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 	// $scope.gameBoard will be a 2D array that hold a player index in each cell to indicate which
 	// player has claimed that cell. If no one has claimed it then it holds null.
-	$scope.gameBoard = [];	
+	// $scope.gameBoard = [];	
 	$scope.winnerIndex = null;
 
 
 	$scope.cellClick = function(row, col) {
 		// only finish the move if empty cell was clicked and game hasn't been won yet
-		if ($scope.gameBoard[row][col] === null && $scope.winnerIndex === null) {
+		if ($scope.gameBoard[row][col] === -1 && $scope.winnerIndex === null) {
 			// claim $scope cell. It now belongs to the current player.
 			$scope.gameBoard[row][col] = currentPlayerIndex;
+			$scope.gameBoard.$save(row);
 			moveCount++;
 			
 			// check win condition
@@ -176,13 +177,23 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 
 	$scope.resetGame = function() {
+		var rowArray;
+		
+		// clear old game board
+		$scope.gameBoard.forEach(function(item) {
+			$scope.gameBoard.$remove(item);
+		});
+
+
 		// initialize game board
 		for (var row = 0; row < gameBoardSize; row++) {
-			$scope.gameBoard[row] = [];
+			rowArray = [];
 			for(var col = 0; col < gameBoardSize; col++) {
-				$scope.gameBoard[row][col] = null;
+				rowArray.push(-1);	// -1 means empty
 			}
+			$scope.gameBoard.$add(rowArray);
 		}
+
 		// initialize game state
 		currentPlayerIndex = 0;
 		$scope.winnerIndex = null;
@@ -195,6 +206,26 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 
 	// START
+	var rootRef = new Firebase('https://blinding-inferno-6634.firebaseio.com/');
+	var gameBoardRef = rootRef.child('gameBoard');
+	$scope.gameBoard = $firebaseArray(gameBoardRef);
 
-	$scope.resetGame();
+	$scope.gameBoard.$loaded(function() {
+		$scope.resetGame();
+	});
+
+	// for (var row = 0; row < gameBoardSize; row++) {
+	// 	gameBoard.row] = [];
+	// 	for(var col = 0; col < gameBoardSize; col++) {
+	// 		$scope.gameBoard[row][col] = null;
+	// 	}
+	// }
+
+
+
+	// $scoperootRef.child('gameBoard');
+
+
+
+
 }

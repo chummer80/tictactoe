@@ -24,7 +24,7 @@
 	<table id="game_board">
 		<tr ng-repeat="row in gameBoard track by $index" ng-init="rowIndex = $index">
 			<td ng-repeat="col in gameBoard[rowIndex] track by $index" ng-init="colIndex = $index" ng-click="cellClick(rowIndex, colIndex); test()" ng-class="{blue:gameBoard[rowIndex][colIndex] === 0, orange: gameBoard[rowIndex][colIndex] === 1}">
-				<div class="highlight" ng-class="{hidden: gameBoard[rowIndex][colIndex] != null || winnerIndex != null}"></div>
+				<div class="highlight" ng-class="{hidden: gameBoard[rowIndex][colIndex] != -1 || winnerIndex != null}"></div>
 			</td>
 		</tr>
 	</table>
