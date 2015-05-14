@@ -6,36 +6,37 @@ angular
 
 function GameController($scope, $firebaseObject, $firebaseArray) {
 
-	var winLineLength = 3;
-	var gameBoardSize = 3;
-	var currentPlayerIndex = 0;
-	var moveCount = 0;
+	var rootRef = new Firebase('https://toe.firebaseio.com/');
+	var winLineLength = $firebaseObject(rootRef.child('winLineLength'));
+	var gameBoardSize = $firebaseObject(rootRef.child('gameBoardSize'));
+	var currentPlayerIndex = $firebaseObject(rootRef.child('currentPlayerIndex'));
+	var moveCount = $firebaseObject(rootRef.child('moveCount'));
+	var winnerIndex = $firebaseObject(rootRef.child('winnerIndex'));
 
 	// $scope.gameBoard will be a 2D array that hold a player index in each cell to indicate which
-	// player has claimed that cell. If no one has claimed it then it holds null.
-	// $scope.gameBoard = [];	
-	$scope.winnerIndex = null;
+	// player has claimed that cell. If no one has claimed it then it holds -1.
+	$scope.gameBoard = $firebaseArray(rootRef.child('gameBoard'));
 
 
 	$scope.cellClick = function(row, col) {
 		// only finish the move if empty cell was clicked and game hasn't been won yet
-		if ($scope.gameBoard[row][col] === -1 && $scope.winnerIndex === null) {
+		if ($scope.gameBoard[row][col] === -1 && $scope.winnerIndex.$value === -2) {
 			// claim $scope cell. It now belongs to the current player.
-			$scope.gameBoard[row][col] = currentPlayerIndex;
+			$scope.gameBoard[row][col] = $scope.currentPlayerIndex.$value;
 			$scope.gameBoard.$save(row);
-			moveCount++;
+			$scope.moveCount.$value++;
 			
 			// check win condition
-			if (checkPlayerWin(currentPlayerIndex)) {
-				$scope.winnerIndex = currentPlayerIndex;
+			if (checkPlayerWin($scope.currentPlayerIndex.$value)) {
+				$scope.winnerIndex.$value = $scope.currentPlayerIndex.$value;
 			}
 			// if there are no more available spaces it's a draw
-			else if (moveCount >= (gameBoardSize * gameBoardSize)) {
-				$scope.winnerIndex = -1;
+			else if ($scope.moveCount.$value >= ($scope.gameBoardSize.$value * $scope.gameBoardSize.$value)) {
+				$scope.winnerIndex.$value = -1;
 			}
 			// toggle which player's turn it is
 			else {
-				currentPlayerIndex = 1 - currentPlayerIndex;
+				$scope.currentPlayerIndex.$value = 1 - $scope.currentPlayerIndex.$value;
 			}
 		}
 	};
@@ -53,7 +54,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	// 	return 0
 		if ($scope.gameBoard[row][col] === searchVal) {
 			// 	if there are no more cells to check (end of row) then
-			if (col + 1 >= gameBoardSize) {
+			if (col + 1 >= $scope.gameBoardSize.$value) {
 				return 1;
 			}
 			// check if next cell should add on to the length counter
@@ -71,7 +72,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	var getVertLineLength = function(searchVal, row, col) {
 		if ($scope.gameBoard[row][col] === searchVal) {
 			// 	if there are no more cells to check (end of column) then
-			if (row + 1 >= gameBoardSize) {
+			if (row + 1 >= $scope.gameBoardSize.$value) {
 				return 1;
 			}
 			// check if next cell should add on to the length counter
@@ -89,7 +90,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	var getDiagRightLineLength = function(searchVal, row, col) {
 		if ($scope.gameBoard[row][col] === searchVal) {
 			// 	if there are no more cells to check (end of row or column) then
-			if ((row + 1 >= gameBoardSize )|| (col + 1 >= gameBoardSize)) {
+			if ((row + 1 >= $scope.gameBoardSize.$value )|| (col + 1 >= $scope.gameBoardSize.$value)) {
 				return 1;
 			}
 			// check if next cell should add on to the length counter
@@ -107,7 +108,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	var getDiagLeftLineLength = function(searchVal, row, col) {
 		if ($scope.gameBoard[row][col] === searchVal) {
 			// 	if there are no more cells to check (end of row or column) then
-			if ((row + 1 >= gameBoardSize )|| (col - 1 < 0)) {
+			if ((row + 1 >= $scope.gameBoardSize.$value )|| (col - 1 < 0)) {
 				return 1;
 			}
 			// check if next cell should add on to the length counter
@@ -125,34 +126,34 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		var remainingCells;
 
 		// Go through every cell, using each one as starting point for win checking
-		for (var row = 0; row < gameBoardSize; row++) {
-			for (var col = 0; col < gameBoardSize; col++) {
+		for (var row = 0; row < $scope.gameBoardSize.$value; row++) {
+			for (var col = 0; col < $scope.gameBoardSize.$value; col++) {
 				// check horizontally from $scope cell
 				// only if it is possible for $scope line to be long enough to win
-				remainingCells = gameBoardSize - col;
-				if (remainingCells >= winLineLength) {
-					if (getHorLineLength(playerIndex, row, col) >= winLineLength) {
+				remainingCells = $scope.gameBoardSize.$value - col;
+				if (remainingCells >= $scope.winLineLength.$value) {
+					if (getHorLineLength(playerIndex, row, col) >= $scope.winLineLength.$value) {
 						return true;
 					}
 				}
 				// check vertically from $scope cell
-				remainingCells = gameBoardSize - row;
-				if (remainingCells >= winLineLength) {
-					if (getVertLineLength(playerIndex, row, col) >= winLineLength) {
+				remainingCells = $scope.gameBoardSize.$value - row;
+				if (remainingCells >= $scope.winLineLength.$value) {
+					if (getVertLineLength(playerIndex, row, col) >= $scope.winLineLength.$value) {
 						return true;
 					}
 				}
 				// check diagonally down-right from $scope cell
-				remainingCells = Math.min(gameBoardSize - row, gameBoardSize - col);
-				if (remainingCells >= winLineLength) {
-					if (getDiagRightLineLength(playerIndex, row, col) >= winLineLength) {
+				remainingCells = Math.min($scope.gameBoardSize.$value - row, $scope.gameBoardSize.$value - col);
+				if (remainingCells >= $scope.winLineLength.$value) {
+					if (getDiagRightLineLength(playerIndex, row, col) >= $scope.winLineLength.$value) {
 						return true;
 					}
 				}
 				// check diagonally down-left from $scope cell
-				remainingCells = Math.min(gameBoardSize - row, col + 1);
-				if (remainingCells >= winLineLength) {
-					if (getDiagLeftLineLength(playerIndex, row, col) >= winLineLength) {
+				remainingCells = Math.min($scope.gameBoardSize.$value - row, col + 1);
+				if (remainingCells >= $scope.winLineLength.$value) {
+					if (getDiagLeftLineLength(playerIndex, row, col) >= $scope.winLineLength.$value) {
 						return true;
 					}
 				}
@@ -164,19 +165,22 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 
 	$scope.getWinMsg = function() {
-		if ($scope.winnerIndex === null) {
+		// -2 means there is no winner
+		if ($scope.winnerIndex.$value === -2) {
 			return "";
 		}
-		else if ($scope.winnerIndex === -1) {
+		// -1 means draw
+		else if ($scope.winnerIndex.$value === -1) {
 			return "DRAW";
 		}
+		// 0 or 1 means player 1 or player 2
 		else {
-			return "Player " + ($scope.winnerIndex + 1) + " WINS!";
+			return "Player " + ($scope.winnerIndex.$value + 1) + " WINS!";
 		}
 	};
 
 
-	$scope.resetGame = function() {
+	$scope.resetGameBoard = function() {
 		var rowArray;
 		
 		// clear old game board
@@ -186,18 +190,13 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 
 		// initialize game board
-		for (var row = 0; row < gameBoardSize; row++) {
+		for (var row = 0; row < $scope.gameBoardSize.$value; row++) {
 			rowArray = [];
-			for(var col = 0; col < gameBoardSize; col++) {
+			for(var col = 0; col < $scope.gameBoardSize.$value; col++) {
 				rowArray.push(-1);	// -1 means empty
 			}
 			$scope.gameBoard.$add(rowArray);
 		}
-
-		// initialize game state
-		currentPlayerIndex = 0;
-		$scope.winnerIndex = null;
-		moveCount = 0;
 	};
 
 
@@ -206,26 +205,45 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 
 	// START
-	var rootRef = new Firebase('https://blinding-inferno-6634.firebaseio.com/');
-	var gameBoardRef = rootRef.child('gameBoard');
-	$scope.gameBoard = $firebaseArray(gameBoardRef);
+	
+	// gameBoard is a $firebaseArray so it cannot use $bindTo
+	$scope.gameBoard.$loaded()
+		.then(function() {
+			$scope.resetGameBoard();
+		});
 
-	$scope.gameBoard.$loaded(function() {
-		$scope.resetGame();
-	});
+	winLineLength.$bindTo($scope, 'winLineLength')
+	// $scope.winLineLength.$loaded()
+		.then(function() {
+			$scope.winLineLength.$value = 3;
+			// $scope.winLineLength.$save();
+		});
+	
+	gameBoardSize.$bindTo($scope, 'gameBoardSize')
+	// $scope.gameBoardSize.$loaded()
+		.then(function() {
+			$scope.gameBoardSize.$value = 3;
+			// $scope.gameBoardSize.$save();
+		});
+	
+	currentPlayerIndex.$bindTo($scope, 'currentPlayerIndex')
+	// $scope.currentPlayerIndex.$loaded()
+		.then(function() {
+			$scope.currentPlayerIndex.$value = 0;
+			// $scope.currentPlayerIndex.$save();
+		});
+	
+	moveCount.$bindTo($scope, 'moveCount')
+	// $scope.moveCount.$loaded()
+		.then(function() {
+			$scope.moveCount.$value = 0;
+			// $scope.moveCount.$save();
+		});
 
-	// for (var row = 0; row < gameBoardSize; row++) {
-	// 	gameBoard.row] = [];
-	// 	for(var col = 0; col < gameBoardSize; col++) {
-	// 		$scope.gameBoard[row][col] = null;
-	// 	}
-	// }
-
-
-
-	// $scoperootRef.child('gameBoard');
-
-
-
-
+	winnerIndex.$bindTo($scope, 'winnerIndex')
+	// $scope.winnerIndex.$loaded()
+		.then(function() {
+			$scope.winnerIndex.$value = -2;	// -2 means there is no winner
+			// $scope.winnerIndex.$save();
+		});
 }
