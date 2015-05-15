@@ -2,9 +2,9 @@ angular
 	.module('tictactoe')
 	.controller(
 			'GameController', 
-			['$scope', '$firebaseObject', '$firebaseArray', GameController]);
+			['$scope', '$firebaseObject', '$firebaseArray', '$timeout', GameController]);
 
-function GameController($scope, $firebaseObject, $firebaseArray) {
+function GameController($scope, $firebaseObject, $firebaseArray, $timeout) {
 	var selfPlayerIndex = null;
 
 	var rootRef = new Firebase('https://toe.firebaseio.com/');
@@ -42,6 +42,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 			}
 		}
 	};
+
 	// determines whether a cell should be clickable
 	$scope.isValidMove = function(row, col) {
 		var isPlayerTurn = $scope.currentPlayerIndex.$value === selfPlayerIndex;
@@ -173,11 +174,24 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	};
 
 
-	$scope.getWinMsg = function() {
-		// -2 means there is no winner
+	$scope.getStatusMsg = function() {
+		if (!$scope.gameRunning.$value) {
+			if (players.length >= 2) {
+				return "Game is full. Too bad."
+			}
+			else {
+				return "Waiting for a game...";
+			}
+		}
+		// -2 means there is no winner yet
 		if (typeof $scope.winnerIndex.$value !== 'number' || 
 			$scope.winnerIndex.$value === -2) {
-			return "";
+			if ($scope.currentPlayerIndex.$value === selfPlayerIndex) {
+				return "Your turn. Pick a square already.";
+			}
+			else {
+				return "Other dude's turn. Please wait.";
+			}
 		}
 		// -1 means draw
 		else if ($scope.winnerIndex.$value === -1) {
@@ -185,7 +199,12 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		}
 		// 0 or 1 means player 1 or player 2
 		else {
-			return "Player " + ($scope.winnerIndex.$value + 1) + " WINS!";
+			if ($scope.winnerIndex.$value === selfPlayerIndex) {
+				return "YOU WIN!";
+			}
+			else {
+				return "YOU LOSE, SUCKA!";
+			}
 		}
 	};
 
@@ -216,14 +235,13 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 			return;
 		}
 				
-		// if first player exists already, then this player will be the 2nd player.
-		if (players[0] && players[0].playerIndex === 0 ||
-			players[1] && players[1].playerIndex === 0) {
-			selfPlayerIndex = 1;
-		}
-		// if first player doesnt' already exist, then this player will be it.
-		else {
+		// if first player doesn exist already, then this player will be player1.
+		if (!players[0]) {
 			selfPlayerIndex = 0;
+		}
+		// if first player already exists, then this player will be player2.
+		else {
+			selfPlayerIndex = 1;
 		}
 		debug("Player Index: " + selfPlayerIndex);
 
@@ -233,11 +251,22 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 				playerIndex: selfPlayerIndex,
 				name: "mike"
 			})
-			.then(function() {
-				if (players.length >= 2) {
-					$scope.gameRunning.$value = true;
-					debug("Starting Game");
-				}
+			.then(function(ref) {
+				// set up deletion of this player object upon when player disconnects
+				ref.onDisconnect().remove();
+				debug("player array length: " + players.length);
+
+				// hack: delay for a bit because player object doesnt' get updated fast enough
+				// for us to be able to use it right away.
+				$timeout(
+					function() {
+						if (players.length >= 2) {
+							$scope.gameRunning.$value = true;
+							debug("Starting Game");
+						}
+					},
+					0.2	// use a 200 ms delay
+				)
 			});
 	}
 
@@ -246,7 +275,6 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	// START
 	
 
-	// gameBoard is a $firebaseArray so it cannot use $bindTo
 	$scope.gameBoard.$loaded()
 		.then(function() {
 			$scope.resetGameBoard();
@@ -287,8 +315,4 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		.then(function() {
 			findGame();
 		});
-
-	// window.onclose(function() {
-	// 	$scope.moveCount.$value = 7;
-	// })
 }
