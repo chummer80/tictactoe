@@ -212,7 +212,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	var findGame = function () {
 		// if there is no open spot, then return
 		if (players.length >= 2) {
-			console.log("Game is full");
+			debug("Game is full");
 			return;
 		}
 				
@@ -225,7 +225,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		else {
 			selfPlayerIndex = 0;
 		}
-		console.log("Player Index: " + selfPlayerIndex);
+		debug("Player Index: " + selfPlayerIndex);
 
 		// mark the spot filled in firebase
 		players
@@ -236,7 +236,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 			.then(function() {
 				if (players.length >= 2) {
 					$scope.gameRunning.$value = true;
-					console.log("Starting Game");
+					debug("Starting Game");
 				}
 			});
 	}
