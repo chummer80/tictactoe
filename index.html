@@ -23,11 +23,11 @@
 
 	<table id="game_board">
 		<tr ng-repeat="row in gameBoard track by $index" ng-init="rowIndex = $index">
-			<td ng-repeat="col in gameBoard[rowIndex] track by $index" ng-init="colIndex = $index" ng-click="cellClick(rowIndex, colIndex); test()" ng-class="{blue:gameBoard[rowIndex][colIndex] === 0, orange: gameBoard[rowIndex][colIndex] === 1}">
-				<div class="highlight" ng-show="gameBoard[rowIndex][colIndex] == -1 && winnerIndex.$value == -2"></div>
+			<td ng-repeat="col in gameBoard[rowIndex] track by $index" ng-init="colIndex = $index" ng-click="cellClick(rowIndex, colIndex);" ng-class="{blue:gameBoard[rowIndex][colIndex] === 0, orange: gameBoard[rowIndex][colIndex] === 1}">
+				<div class="highlight" ng-show="isValidMove(rowIndex, colIndex)"></div>
 			</td>
 		</tr>
 	</table>
-	<h1 id="winner_msg" ng-show="winnerIndex.$value != -2">{{getWinMsg()}}</h1>
+	<h1 id="status_msg" ng-show="winnerIndex.$value != -2">{{getWinMsg()}}</h1>
 </body>
 </html>

@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Lato);
+@import url(https://fonts.googleapis.com/css?family=Lato);
 
 @font-face {
 	font-family: Nudely;
@@ -23,7 +23,6 @@ header {
 	font-family: "Nudely", sans-serif; 
 	background-color: white;
 	box-shadow: 0px 10px 20px grey;
-	/*border-bottom:  2px solid black;*/
 }
 
 header h1 {
@@ -124,6 +123,6 @@ header h1 .orange_fill_text {
     transition: background-color 0.8s;
 }
 
-#winner_msg {
+#status_msg {
 	text-align: center;
 }
