@@ -1,5 +1,5 @@
 Wireframes:
-	Landing page view:
+	Lobby view:
 		https://wireframe.cc/Hjwqhd
 	Game view:
 		https://wireframe.cc/66kbz2

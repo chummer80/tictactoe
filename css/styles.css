@@ -2,7 +2,7 @@
 
 @font-face {
 	font-family: Nudely;
-	src: url('../fonts/nudely.otf');
+	src: url('../fonts/Nudely.otf');
 }
 
 * {
@@ -10,9 +10,6 @@
 	box-sizing: border-box;
 }
 
-.hidden {
-	display: none;
-}
 
 body {
 	background-color: silver;
@@ -42,6 +39,92 @@ header h1 .blue_fill_text {
 header h1 .orange_fill_text {
    	-webkit-text-fill-color: orange; /* Will override color (regardless of order) */
 }
+
+.rounded_corners {
+	border-radius: 20%;
+}
+
+#lobby_section {
+	width: 75%;
+	max-width: 50rem;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+}
+
+#instructions {
+	margin-top: 5rem;
+}
+
+#name_textbox {
+	margin-top: 1rem;
+	width: 20rem;
+}
+
+input[type="text"] {
+	font-size: 2rem;
+	text-align: center;
+}
+
+button {
+	background-color: white;
+	padding: 1rem;
+
+	font-family: "Nudely";
+	font-size: 3rem;
+	color: black;
+   	-webkit-text-stroke-width: 1px;
+   	-webkit-text-stroke-color: black;
+   	-webkit-text-fill-color: rgb(74, 197, 255);
+}
+
+button:active {
+	-webkit-text-fill-color: orange;
+}
+
+button:focus, input:focus {
+	outline: 0;
+}
+
+#name_button {
+	margin-top: 2rem;
+	
+}
+
+#config_msg {
+	white-space: pre-wrap;
+}
+
+#waiting_image {
+	margin-top: 4rem;
+	width: 170px;
+	height: 170px;
+	background-image: url('../images/waiting_sprite.png');
+	background-position: 0 0;
+	background-repeat: no-repeat;
+
+	-webkit-animation-name: spin; 
+	-webkit-animation-duration: 1s; 
+	-webkit-animation-iteration-count: infinite; 
+	-webkit-animation-timing-function: steps(18);
+
+	animation-name: spin; 
+	animation-duration: 1s; 
+	animation-iteration-count: infinite; 
+	animation-timing-function: steps(18);
+}
+
+@-webkit-keyframes spin {
+	0%{	background-position: 0 0;}
+	100%{	background-position: 0 -3060px;}
+}
+@keyframes spin {
+	0%{	background-position: 0 0;}
+	100%{	background-position: 0 -3060px;}
+}
+
 
 #game_board {
 	border-collapse: collapse;

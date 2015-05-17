@@ -21,13 +21,49 @@
 		</h1>
 	</header>
 
-	<table id="game_board" ng-show="gameRunning.$value">
-		<tr ng-repeat="row in gameBoard track by $index" ng-init="rowIndex = $index">
-			<td ng-repeat="col in gameBoard[rowIndex] track by $index" ng-init="colIndex = $index" ng-click="cellClick(rowIndex, colIndex);" ng-class="{blue:gameBoard[rowIndex][colIndex] === 0, orange: gameBoard[rowIndex][colIndex] === 1}">
-				<div class="highlight" ng-show="isValidMove(rowIndex, colIndex)"></div>
-			</td>
-		</tr>
-	</table>
-	<h1 id="status_msg">{{getStatusMsg()}}</h1>
+	<main ng-cloak>
+		<section id="lobby_section" ng-show="gameState == states.login">
+			<h1 id="instructions">Enter your name to join a game</h1>
+			<input id="name_textbox" class="rounded_corners" type="text" placeholder="your name here" ng-model="playerName">
+			<button id="name_button" class="rounded_corners" ng-click="findGame()">JOIN</button>
+		</section>
+
+
+		<section id="gamefull_section" ng-show="gameState == states.gamefull">
+			<img src="images/tack.jpeg">
+			<h1>The game is full. Too bad.</h1>
+			<button class="rounded_corners" ng-click="gameState = states.login">RETRY</button>
+		</section>
+
+
+		<section id="config_section" ng-show="gameState == states.config">
+			<h3>Board Size: </h3>
+			<input id="board_config_textbox" class="rounded_corners" type="text" placeholder="3 - 6" ng-model="gameBoardSize.$value">		
+			<h3>Winning Line Length: </h3>
+			<input id="win_config_textbox" class="rounded_corners" type="text" placeholder="3 - 4" ng-model="winLineLength.$value">
+			<h1 id="config_msg">{{getConfigMsg()}}</h1>
+			<button id="config_done_button" class="rounded_corners" ng-show="getConfigMsg() == ''" ng-click="config()">READY</button>
+		</section>
+
+
+		<section id="waiting_section" ng-show="gameState == states.waiting">
+			<div id="waiting_image"></div>
+			<h1 id="waiting_msg">Waiting for another player...</h1>
+		</section>
+
+
+		<section id="game_section" ng-show="gameState == states.playing || gameState == states.gameover">
+			<table id="game_board">
+				<tr ng-repeat="row in gameBoard track by $index" ng-init="rowIndex = $index">
+					<td ng-repeat="col in gameBoard[rowIndex] track by $index" ng-init="colIndex = $index" ng-click="cellClick(rowIndex, colIndex);" ng-class="{blue:gameBoard[rowIndex][colIndex] === 0, orange: gameBoard[rowIndex][colIndex] === 1}">
+						<div class="highlight" ng-show="gameState == states.playing && isValidMove(rowIndex, colIndex)"></div>
+					</td>
+				</tr>
+			</table>
+			<h1 id="status_msg">{{getGameStatusMsg()}}</h1>
+			<button class="rounded_corners" ng-click="restart()" ng-show="gameState == states.gameover">LEAVE GAME</button>
+
+		</section>
+	</main>
 </body>
 </html>
