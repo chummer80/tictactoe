@@ -44,7 +44,7 @@ header h1 .orange_fill_text {
 	border-radius: 20%;
 }
 
-#lobby_section {
+section {
 	width: 75%;
 	max-width: 50rem;
 	margin: 0 auto;
@@ -63,9 +63,16 @@ header h1 .orange_fill_text {
 	width: 20rem;
 }
 
-input[type="text"] {
+input[type="text"], input[type="number"] {
 	font-size: 2rem;
 	text-align: center;
+}
+
+input[type="text"] {
+	border-top-left-radius: 6% 40%;
+	border-top-right-radius: 6% 40%;
+	border-bottom-left-radius: 6% 40%;
+	border-bottom-right-radius: 6% 40%;
 }
 
 button {
@@ -90,7 +97,10 @@ button:focus, input:focus {
 
 #name_button {
 	margin-top: 2rem;
-	
+}
+
+#gamefull_section img {
+	border-radius: 50%
 }
 
 #config_msg {

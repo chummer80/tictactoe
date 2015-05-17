@@ -26,15 +26,20 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		gameover: 5
 	};
 
-
+	var winCodes = {
+		pending: -2,
+		draw: -1,
+		player0: 0,
+		player1: 1
+	};
 
 
 	// INTERNAL (LOCAL) VARIABLES
 
-	var selfPlayerIndex;
-	var selfRef;
+	var boardUnwatch, playersUnwatch;
+	var selfPlayerIndex, selfRef;
 	$scope.playerName;
-	$scope.gameState = $scope.states.login;
+	setState('login');
 
 	// FIREBASE (REMOTE) VARIABLES
 
@@ -68,20 +73,56 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 
 	// FUNCTIONS
 
+	function setState(state) {
+		$scope.gameState = $scope.states[state];
+	}
+
+	function isState(state) {
+		return $scope.gameState === $scope.states[state];
+	}
+
+	function checkForWin(event) {
+		var numSpaces = $scope.gameBoardSize.$value * $scope.gameBoardSize.$value;
+		if (event.event === "child_changed") {
+			// check win condition
+			for (var i = 0; i < 2; i++) {
+				if (isWinningPlayer(i)) {
+					boardUnwatch();	// stop checking for winner
+					endGame(i);
+
+					return;	// win checking no longer needed. return to stop.
+				}
+			}
+
+			// if nobody won and there are no more available spaces it's a draw
+			if ($scope.winnerIndex.$value === winCodes.pending && 
+				$scope.moveCount.$value >= numSpaces) {
+				boardUnwatch();	// stop checking for winner
+				endGame(winCodes.draw);
+			}
+		}
+		else {
+			debug("something wonky happened to the board: " + event);
+		}
+	}
+
 	function waitForGame() {
 		waitingPromise = $interval(
 			function() {
 				// start game when 2 players have joined and game has been configured
 				if (players.length >= 2  && $scope.gameConfigured.$value) {
-					$scope.gameState = $scope.states.playing;
 					$interval.cancel(waitingPromise);
+
+					// set a $watch on the board to check for winner after every move
+					boardUnwatch = $scope.gameBoard.$watch(checkForWin);
+
+					setState('playing');
 					debug("Starting Game");
 				}
 			},
 			0.2
 		);
 	}
-
 
 	function initBoard() {
 		var rowArray;
@@ -101,12 +142,11 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		}
 	}
 
-
 	function initGame() {
 		initBoard();
 		$scope.currentPlayerIndex.$value = 0;
 		$scope.moveCount.$value = 0;
-		$scope.winnerIndex.$value = -2;	// -2 means there is no winner
+		$scope.winnerIndex.$value = winCodes.pending;
 	}
 
 	// Win-checking algorithm:
@@ -120,8 +160,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 	// 			return 1 + recursive call to function (using same desired cell val and next cell's coordinates)
 	// else
 	// 		return 0
-
-	var getLineLength = function(searchVal, dir, row, col) {
+	function getLineLength(searchVal, dir, row, col) {
 		var nextRow, nextCol;
 		switch(dir) {
 			case 'R':
@@ -160,78 +199,9 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		else {
 			return 0;
 		}
-	};
+	}
 
-/*	
-	var getHorLineLength = function(searchVal, row, col) {
-		if ($scope.gameBoard[row][col] === searchVal) {
-			// 	if there are no more cells to check (end of row) then
-			if (col + 1 >= $scope.gameBoardSize.$value) {
-				return 1;
-			}
-			// check if next cell should add on to the length counter
-			else {
-				return (1 + getHorLineLength(searchVal, row, col + 1));
-			}
-		}
-		// search value was not found, so $scope line has no length.
-		else {
-			return 0;
-		}
-	};
-
-	var getVertLineLength = function(searchVal, row, col) {
-		if ($scope.gameBoard[row][col] === searchVal) {
-			// 	if there are no more cells to check (end of column) then
-			if (row + 1 >= $scope.gameBoardSize.$value) {
-				return 1;
-			}
-			// check if next cell should add on to the length counter
-			else {
-				return (1 + getVertLineLength(searchVal, row + 1, col));
-			}
-		}
-		// search value was not found, so $scope line has no length.
-		else {
-			return 0;
-		}
-	};
-
-	var getDiagRightLineLength = function(searchVal, row, col) {
-		if ($scope.gameBoard[row][col] === searchVal) {
-			// 	if there are no more cells to check (end of row or column) then
-			if ((row + 1 >= $scope.gameBoardSize.$value )|| (col + 1 >= $scope.gameBoardSize.$value)) {
-				return 1;
-			}
-			// check if next cell should add on to the length counter
-			else {
-				return (1 + getDiagRightLineLength(searchVal, row + 1, col + 1));
-			}
-		}
-		// search value was not found, so $scope line has no length.
-		else {
-			return 0;
-		}
-	};
-
-	var getDiagLeftLineLength = function(searchVal, row, col) {
-		if ($scope.gameBoard[row][col] === searchVal) {
-			// 	if there are no more cells to check (end of row or column) then
-			if ((row + 1 >= $scope.gameBoardSize.$value )|| (col - 1 < 0)) {
-				return 1;
-			}
-			// check if next cell should add on to the length counter
-			else {
-				return (1 + getDiagLeftLineLength(searchVal, row + 1, col - 1));
-			}
-		}
-		// search value was not found, so $scope line has no length.
-		else {
-			return 0;
-		}
-	};
-*/
-	var checkPlayerWin = function(playerIndex) {
+	function isWinningPlayer(playerIndex) {
 		var searchArgs = [];
 
 		// Go through every cell, using each one as starting point for win checking
@@ -301,12 +271,40 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		}
 
 		return false;
-	};
+	}
 
+	function handleOpponentDC() {
+		// configuring player disconnected before finishing
+		if (isState('waiting')) {
+			// become the configuring player (player 0)
+			debug("becoming playerIndex 0");
+			selfPlayerIndex = 0;
+			beginConfig();
+			return;
+		}
+
+		// if opponent rage quits during game, you auto-win
+		if (isState('playing')) {
+			endGame(selfPlayerIndex);
+			return;
+		}
+	}
+
+	function endGame(winner) {
+		// stop watching for opponent DC now
+		playersUnwatch();
+		$scope.winnerIndex.$value = winner;
+		setState('gameover');
+	}
+
+	function beginConfig() {
+		$scope.gameConfigured.$value = false;
+		setState('config');
+	}
 
 	// player attempted a move by clicking cell on the board
 	$scope.cellClick = function(row, col) {
-		if ($scope.gameState !== $scope.states.playing) {
+		if (!isState('playing')) {
 			debug("cellClick() was called from wrong state: " + $scope.gameState);
 			return;
 		}
@@ -317,20 +315,9 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 			$scope.gameBoard.$save(row);
 			$scope.moveCount.$value++;
 			
-			// check win condition
-			if (checkPlayerWin($scope.currentPlayerIndex.$value)) {
-				$scope.winnerIndex.$value = $scope.currentPlayerIndex.$value;
-				$scope.gameState = $scope.states.gameover;
-			}
-			// if there are no more available spaces it's a draw
-			else if ($scope.moveCount.$value >= ($scope.gameBoardSize.$value * $scope.gameBoardSize.$value)) {
-				$scope.winnerIndex.$value = -1;
-				$scope.gameState = $scope.states.gameover;
-			}
-			// toggle which player's turn it is
-			else {
-				$scope.currentPlayerIndex.$value = 1 - $scope.currentPlayerIndex.$value;
-			}
+			// switch to opponent's turn
+			$scope.currentPlayerIndex.$value = 1 - $scope.currentPlayerIndex.$value;
+			
 		}
 	};
 
@@ -343,14 +330,13 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 	};
 
 	$scope.getGameStatusMsg = function() {
-		if ($scope.gameState !== $scope.states.playing &&
-			$scope.gameState !== $scope.states.gameover) {
+		if (!isState('playing') &&
+			!isState('gameover')) {
 			return "";
 		}
 
 		// -2 means there is no winner yet
-		if (typeof $scope.winnerIndex.$value !== 'number' || 
-			$scope.winnerIndex.$value === -2) {
+		if ($scope.winnerIndex.$value === winCodes.pending) {
 			if ($scope.currentPlayerIndex.$value === selfPlayerIndex) {
 				return "Your turn. Pick a square already.";
 			}
@@ -359,10 +345,10 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 			}
 		}
 		// -1 means draw
-		else if ($scope.winnerIndex.$value === -1) {
+		else if ($scope.winnerIndex.$value === winCodes.draw) {
 			return "DRAW";
 		}
-		// 0 or 1 means player 1 or player 2
+		// 0 or 1 means a player has won
 		else {
 			if ($scope.winnerIndex.$value === selfPlayerIndex) {
 				return "YOU WIN!";
@@ -373,10 +359,8 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		}
 	};
 
-
-
 	$scope.findGame = function () {
-		if ($scope.gameState !== $scope.states.login) {
+		if (!isState('login')) {
 			debug("calling findGame() from wrong state: " + $scope.gameState);
 			return;
 		}
@@ -384,7 +368,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		// if there is no open spot, then go to game full screen
 		if (players.length >= 2) {
 			debug("Game is full");
-			$scope.gameState = $scope.states.gamefull;
+			setState('gamefull');
 			return;
 		}
 				
@@ -415,65 +399,40 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 
 				// first player who joined gets to configure the settings
 				if (selfPlayerIndex === 0) {
-					$scope.gameConfigured.$value = false;
-					$scope.gameState = $scope.states.config;
+					beginConfig();
 				}
 				// second player who joined goes to the waiting room.
 				else {
-					$scope.gameState = $scope.states.waiting;
+					// set up a listener for player disconnect so if the other player
+					// DC's during configuration, this waiting player can replace him
+					playersUnwatch = players.$watch(handleOpponentDC);
+					setState('waiting');
 					waitForGame();
 				}
 			});
 	};
 
 	$scope.config = function() {
-		if ($scope.gameState !== $scope.states.config) {
+		if (!isState('config')) {
 			debug("config() was called from wrong state: " + $scope.gameState);
 			return;
 		}
 
 		initGame();
 		$scope.gameConfigured.$value = true;
-		$scope.gameState = $scope.states.waiting;
+		setState('waiting');
 		waitForGame();
 	};
 
-
-
-	$scope.getConfigMsg = function() {
-		if ($scope.gameState !== $scope.states.config) {
-			return "";
-		}
-
-		function add(text) {
-			if (msg.length > 0) { msg += "\n"; }	// this is the line-feed HTML entity
-			msg += text;
-		}
-		var msg = "";
-
-
-		if ($scope.gameBoardSize.$value < 3) { 
-			add("Game board cannot be smaller than 3x3."); 
-		}
-		else if ($scope.gameBoardSize.$value > 6) { 
-			add("Game board cannot be larger than 6x6."); 
-		} 
-		
-		if ($scope.winLineLength.$value < 3) { 
-			add("Winning line length cannot be shorter than 3."); 
-		}
-		else if ($scope.winLineLength.$value > 4) { 
-			add("Winning line length cannot be longer than 4."); 
-		} 
-
+	$scope.validateConfig = function() {
 		if ($scope.winLineLength.$value > $scope.gameBoardSize.$value) {
-			add("Board must be bigger than then winning line length.");
+			$scope.winLineLength.$value = $scope.gameBoardSize.$value;
 		}
-		return msg;
 	};
 
 	$scope.restart = function() {
+		// remove player from the game to make a new empty slot
 		selfRef.remove();
-		$scope.gameState = $scope.states.login;
+		setState('login');
 	};
 }

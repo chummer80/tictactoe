@@ -24,13 +24,13 @@
 	<main ng-cloak>
 		<section id="lobby_section" ng-show="gameState == states.login">
 			<h1 id="instructions">Enter your name to join a game</h1>
-			<input id="name_textbox" class="rounded_corners" type="text" placeholder="your name here" ng-model="playerName">
+			<input id="name_textbox" type="text" placeholder="your name here" ng-model="playerName">
 			<button id="name_button" class="rounded_corners" ng-click="findGame()">JOIN</button>
 		</section>
 
 
 		<section id="gamefull_section" ng-show="gameState == states.gamefull">
-			<img src="images/tack.jpeg">
+			<img src="images/sadbaby_reverse.gif">
 			<h1>The game is full. Too bad.</h1>
 			<button class="rounded_corners" ng-click="gameState = states.login">RETRY</button>
 		</section>
@@ -38,11 +38,11 @@
 
 		<section id="config_section" ng-show="gameState == states.config">
 			<h3>Board Size: </h3>
-			<input id="board_config_textbox" class="rounded_corners" type="text" placeholder="3 - 6" ng-model="gameBoardSize.$value">		
+			<input id="board_config_textbox" class="rounded_corners" type="number" ng-model="gameBoardSize.$value" min="3" max="6" ng-change="validateConfig()">
 			<h3>Winning Line Length: </h3>
-			<input id="win_config_textbox" class="rounded_corners" type="text" placeholder="3 - 4" ng-model="winLineLength.$value">
-			<h1 id="config_msg">{{getConfigMsg()}}</h1>
-			<button id="config_done_button" class="rounded_corners" ng-show="getConfigMsg() == ''" ng-click="config()">READY</button>
+			<input id="win_config_textbox" class="rounded_corners" type="number" ng-model="winLineLength.$value" min="3" max="{{(4 < gameBoardSize.$value) ? 4 : gameBoardSize.$value}}">
+			<!-- <h1 id="config_msg">{{getConfigMsg()}}</h1> -->
+			<button id="config_done_button" class="rounded_corners" ng-click="config()">READY</button>
 		</section>
 
 
@@ -61,7 +61,7 @@
 				</tr>
 			</table>
 			<h1 id="status_msg">{{getGameStatusMsg()}}</h1>
-			<button class="rounded_corners" ng-click="restart()" ng-show="gameState == states.gameover">LEAVE GAME</button>
+			<button class="rounded_corners" ng-click="restart()" ng-show="gameState == states.gameover">GAME OVER</button>
 
 		</section>
 	</main>
