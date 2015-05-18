@@ -413,4 +413,9 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		selfRef.remove();
 		setState('login');
 	};
+
+	$scope.toggleBtnAnim = function(event) {
+		console.dir(event);
+		event.target.classList.toggle('pulse');
+	};
 }
