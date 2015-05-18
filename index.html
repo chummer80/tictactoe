@@ -42,7 +42,7 @@
 			<h3>Winning Line Length: </h3>
 			<input id="win_config_textbox" class="rounded_corners" type="number" ng-model="winLineLength.$value" min="3" max="{{(4 < gameBoardSize.$value) ? 4 : gameBoardSize.$value}}">
 			<!-- <h1 id="config_msg">{{getConfigMsg()}}</h1> -->
-			<button id="config_done_button" class="rounded_corners blue_fill_text orange_fill_text_active" ng-click="config()">READY</button>
+			<button id="config_button" class="rounded_corners blue_fill_text orange_fill_text_active" ng-click="config()">READY</button>
 		</section>
 
 

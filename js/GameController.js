@@ -6,14 +6,13 @@ angular
 			'$scope', 
 			'$firebaseObject', 
 			'$firebaseArray', 
-			'$interval', 
 			GameController
 		]
 	);
 
 
 
-function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
+function GameController($scope, $firebaseObject, $firebaseArray) {
 	
 	// CONSTANTS
 
@@ -36,7 +35,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 
 	// INTERNAL (LOCAL) VARIABLES
 
-	var boardUnwatch, playersUnwatch;
+	var boardUnwatch, playersUnwatch, gameConfiguredUnwatch;
 	var selfPlayerIndex, selfRef;
 	$scope.playerName;
 	setState('login');
@@ -45,7 +44,8 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 
 	var rootRef = new Firebase('https://toe.firebaseio.com/');
 
-	var tempFirebaseObj = $firebaseObject(rootRef.child('gameConfigured'));
+	var gameConfiguredRef = rootRef.child('gameConfigured');
+	var tempFirebaseObj = $firebaseObject(gameConfiguredRef);
 	tempFirebaseObj.$bindTo($scope, 'gameConfigured');
 
 	tempFirebaseObj = $firebaseObject(rootRef.child('winLineLength'));
@@ -106,22 +106,10 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		}
 	}
 
-	function waitForGame() {
-		waitingPromise = $interval(
-			function() {
-				// start game when 2 players have joined and game has been configured
-				if ($scope.players.length >= 2  && $scope.gameConfigured.$value) {
-					$interval.cancel(waitingPromise);
-
-					// set a $watch on the board to check for winner after every move
-					boardUnwatch = $scope.gameBoard.$watch(checkForWin);
-
-					setState('playing');
-					debug("Starting Game");
-				}
-			},
-			0.2
-		);
+	function startGame() {
+		boardUnwatch = $scope.gameBoard.$watch(checkForWin);
+		setState('playing');
+		debug("Starting Game");
 	}
 
 	function initBoard() {
@@ -242,20 +230,27 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		return false;
 	}
 
-	function handleOpponentDC() {
-		// configuring player disconnected before finishing
+	function playersWatchCB(event) {
 		if (isState('waiting')) {
-			// become the configuring player (player 0)
-			debug("becoming playerIndex 0");
-			selfPlayerIndex = 0;
-			beginConfig();
-			return;
+			// configuring player disconnected before finishing
+			if (event.event === "child_removed") {
+				// become the configuring player (player 0)
+				debug("becoming playerIndex 0");
+				selfPlayerIndex = 0;
+				// remove the 'value' event listener we used to need when this was not the configuring player
+				gameConfiguredRef.off('value');	
+				beginConfig();
+			}
+			// player already configured the game and was waiting for an opponent. 
+			// this event indicates the opponent has connected.
+			else if (event.event === "child_added") {
+				startGame();
+			}
 		}
 
 		// if opponent rage quits during game, you auto-win
-		if (isState('playing')) {
+		if (isState('playing') && event.event === "child_removed") {
 			endGame(selfPlayerIndex);
-			return;
 		}
 	}
 
@@ -340,14 +335,15 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 			return;
 		}
 				
-		// if first player doesn't exist already, then this player will be player1.
-		if (!$scope.players[0]) {
-			selfPlayerIndex = 0;
-		}
+		// if this is the first player to join, then this player will be player1.
 		// if first player already exists, then this player will be player2.
-		else {
-			selfPlayerIndex = 1;
-		}
+		selfPlayerIndex = ($scope.players.length === 0) ? 0 : 1;
+		// if ($scope.players.length === 0) {
+		// 	selfPlayerIndex = 0;
+		// }
+		// else {
+		// 	selfPlayerIndex = 1;
+		// }
 		debug("Player Index: " + selfPlayerIndex);
 
 		// if name was left blank, give a default name
@@ -367,11 +363,21 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 				}
 				// second player who joined goes to the waiting room.
 				else {
-					// set up a listener for player disconnect so if the other player
-					// DC's during configuration, this waiting player can replace him
-					playersUnwatch = $scope.players.$watch(handleOpponentDC);
-					setState('waiting');
-					waitForGame();
+					// regardless of whether a game begins now, or if waiting for opponent 
+					// to configure game begins, a players $watch is needed.
+					playersUnwatch = $scope.players.$watch(playersWatchCB);
+					if ($scope.gameConfigured.$value) {
+						startGame();
+					}
+					else {
+						setState('waiting');
+						gameConfiguredRef.on('value', function(snapshot) {
+							if (snapshot.val() === true) {
+								gameConfiguredRef.off('value');
+								startGame();
+							}
+						});
+					}
 				}
 			});
 	};
@@ -384,8 +390,16 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 
 		initGame();
 		$scope.gameConfigured.$value = true;
-		setState('waiting');
-		waitForGame();
+
+		// regardless of whether a game begins now, or if waiting for opponent 
+		// connect begins, a players $watch is needed.
+		playersUnwatch = $scope.players.$watch(playersWatchCB);
+		if ($scope.players.length >= 2) {
+			startGame();
+		}
+		else {
+			setState('waiting');
+		}
 	};
 
 	$scope.validateConfig = function() {

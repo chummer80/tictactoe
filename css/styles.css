@@ -113,6 +113,10 @@ header h1, button, #versus {
 	white-space: pre-wrap;
 }
 
+#config_button {
+	margin-top: 2rem;
+}
+
 /********** waiting screen **********/
 
 #waiting_image {
@@ -151,7 +155,7 @@ header h1, button, #versus {
 
 #game_board {
 	border-collapse: collapse;
-	margin: 5rem auto;
+	margin-top: 2rem;
 }
 
 #game_board tr {
