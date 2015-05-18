@@ -1,3 +1,5 @@
+/********** fonts **********/
+
 @import url(https://fonts.googleapis.com/css?family=Lato);
 
 @font-face {
@@ -5,39 +7,26 @@
 	src: url('../fonts/Nudely.otf');
 }
 
+/********** general / misc **********/
+
 * {
 	/*outline: 1px dotted red;*/
 	box-sizing: border-box;
 }
-
 
 body {
 	background-color: silver;
 	font-family: "Lato", sans-serif; 
 }
 
-header {
-	font-family: "Nudely", sans-serif; 
-	background-color: white;
-	box-shadow: 0px 10px 20px grey;
-}
-
-header h1 {
-	margin: 0;
-	text-align: center;
-	font-size: 6rem;
-	text-shadow: 0.2rem 0.2rem 0.2rem silver;
-
-	color: black;
-   	-webkit-text-stroke-width: 1px;
-   	-webkit-text-stroke-color: black;
-}
-
-header h1 .blue_fill_text {
+.blue_fill_text {
    	-webkit-text-fill-color: rgb(74, 197, 255); /* Will override color (regardless of order) */
 }
-header h1 .orange_fill_text {
+.orange_fill_text, .orange_fill_text_active:active {
    	-webkit-text-fill-color: orange; /* Will override color (regardless of order) */
+}
+.white_fill_text {
+   	-webkit-text-fill-color: white; /* Will override color (regardless of order) */
 }
 
 .rounded_corners {
@@ -48,19 +37,11 @@ section {
 	width: 75%;
 	max-width: 50rem;
 	margin: 0 auto;
+	padding-top: 4rem;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	align-items: center;
-}
-
-#instructions {
-	margin-top: 5rem;
-}
-
-#name_textbox {
-	margin-top: 1rem;
-	width: 20rem;
 }
 
 input[type="text"], input[type="number"] {
@@ -79,36 +60,62 @@ button {
 	background-color: white;
 	padding: 1rem;
 
-	font-family: "Nudely";
 	font-size: 3rem;
-	color: black;
-   	-webkit-text-stroke-width: 1px;
-   	-webkit-text-stroke-color: black;
    	-webkit-text-fill-color: rgb(74, 197, 255);
-}
-
-button:active {
-	-webkit-text-fill-color: orange;
 }
 
 button:focus, input:focus {
 	outline: 0;
 }
 
-#name_button {
+/********** header **********/
+
+
+header {
+	background-color: white;
+	box-shadow: 0px 10px 20px grey;
+}
+
+header h1 {
+	margin: 0;
+	text-align: center;
+	font-size: 6rem;
+	text-shadow: 0.2rem 0.2rem 0.2rem silver;
+}
+
+header h1, button, #versus {
+	font-family: "Nudely", sans-serif; 
+	color: black;
+   	-webkit-text-stroke-width: 1px;
+   	-webkit-text-stroke-color: black;
+}
+
+/********** login screen **********/
+
+#name_textbox {
+	margin-top: 1rem;
+	width: 20rem;
+}
+
+#join_button {
 	margin-top: 2rem;
 }
 
-#gamefull_section img {
+/********** gamefull screen **********/
+
+#gamefull_screen img {
 	border-radius: 50%
 }
+
+/********** config screen **********/
 
 #config_msg {
 	white-space: pre-wrap;
 }
 
+/********** waiting screen **********/
+
 #waiting_image {
-	margin-top: 4rem;
 	width: 170px;
 	height: 170px;
 	background-image: url('../images/waiting_sprite.png');
@@ -135,6 +142,12 @@ button:focus, input:focus {
 	100%{	background-position: 0 -3060px;}
 }
 
+
+/********** playing screen **********/
+
+#versus {
+	font-size: 3rem;
+}
 
 #game_board {
 	border-collapse: collapse;
@@ -204,18 +217,14 @@ button:focus, input:focus {
 }
 
 
-.blue {
+.blue_tile {
 	background-color: rgb(74, 197, 255);
 	-webkit-transition: background-color 0.8s;
     transition: background-color 0.8s;
 }
 
-.orange {
+.orange_tile {
 	background-color: orange;
 	-webkit-transition: background-color 0.8s;
     transition: background-color 0.8s;
-}
-
-#status_msg {
-	text-align: center;
 }

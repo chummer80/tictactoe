@@ -66,7 +66,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 	// $scope.gameBoard will be a 2D array that hold a player index in each cell to indicate which
 	// player has claimed that cell. If no one has claimed it then it holds -1.
 	$scope.gameBoard = $firebaseArray(rootRef.child('gameBoard'));
-	var players = $firebaseArray(rootRef.child('players'));
+	$scope.players = $firebaseArray(rootRef.child('players'));
 
 
 
@@ -110,7 +110,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		waitingPromise = $interval(
 			function() {
 				// start game when 2 players have joined and game has been configured
-				if (players.length >= 2  && $scope.gameConfigured.$value) {
+				if ($scope.players.length >= 2  && $scope.gameConfigured.$value) {
 					$interval.cancel(waitingPromise);
 
 					// set a $watch on the board to check for winner after every move
@@ -236,37 +236,6 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 						}
 					}
 				}
-			/*			
-				// check horizontally from $scope cell
-				// only if it is possible for $scope line to be long enough to win
-				remainingCells = $scope.gameBoardSize.$value - col;
-				if (remainingCells >= $scope.winLineLength.$value) {
-					if (getLineLength(playerIndex, 'R', row, col) >= $scope.winLineLength.$value) {
-						return true;
-					}
-				}
-				// check vertically from $scope cell
-				remainingCells = $scope.gameBoardSize.$value - row;
-				if (remainingCells >= $scope.winLineLength.$value) {
-					if (getLineLength(playerIndex, 'D', row, col) >= $scope.winLineLength.$value) {
-						return true;
-					}
-				}
-				// check diagonally down-right from $scope cell
-				remainingCells = Math.min($scope.gameBoardSize.$value - row, $scope.gameBoardSize.$value - col);
-				if (remainingCells >= $scope.winLineLength.$value) {
-					if (getLineLength(playerIndex, 'DR', row, col) >= $scope.winLineLength.$value) {
-						return true;
-					}
-				}
-				// check diagonally down-left from $scope cell
-				remainingCells = Math.min($scope.gameBoardSize.$value - row, col + 1);
-				if (remainingCells >= $scope.winLineLength.$value) {
-					if (getLineLength(playerIndex, 'DL', row, col) >= $scope.winLineLength.$value) {
-						return true;
-					}
-				}
-			*/
 			}
 		}
 
@@ -330,8 +299,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 	};
 
 	$scope.getGameStatusMsg = function() {
-		if (!isState('playing') &&
-			!isState('gameover')) {
+		if (!isState('playing') && !isState('gameover')) {
 			return "";
 		}
 
@@ -341,7 +309,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 				return "Your turn. Pick a square already.";
 			}
 			else {
-				return "Other dude's turn. Please wait.";
+				return "Other dude's turn. Hang on a sec.";
 			}
 		}
 		// -1 means draw
@@ -366,14 +334,14 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		}
 
 		// if there is no open spot, then go to game full screen
-		if (players.length >= 2) {
+		if ($scope.players.length >= 2) {
 			debug("Game is full");
 			setState('gamefull');
 			return;
 		}
 				
 		// if first player doesn't exist already, then this player will be player1.
-		if (!players[0]) {
+		if (!$scope.players[0]) {
 			selfPlayerIndex = 0;
 		}
 		// if first player already exists, then this player will be player2.
@@ -386,11 +354,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 		if (!$scope.playerName) { $scope.playerName = "Player" + (selfPlayerIndex + 1); }
 
 		// mark the spot filled in firebase
-		players
-			// .$add({
-			// 	playerIndex: selfPlayerIndex,
-			// 	name: $scope.playerName
-			// })
+		$scope.players
 			.$add($scope.playerName)
 			.then(function(ref) {
 				selfRef = ref;
@@ -405,7 +369,7 @@ function GameController($scope, $firebaseObject, $firebaseArray, $interval) {
 				else {
 					// set up a listener for player disconnect so if the other player
 					// DC's during configuration, this waiting player can replace him
-					playersUnwatch = players.$watch(handleOpponentDC);
+					playersUnwatch = $scope.players.$watch(handleOpponentDC);
 					setState('waiting');
 					waitForGame();
 				}
