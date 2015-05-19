@@ -150,7 +150,23 @@ header h1, button, #versus {
 /********** playing screen **********/
 
 #versus {
+	width: 100%;
 	font-size: 3rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+#versus div:nth-child(1) {
+	width: 42%;
+	text-align: right;
+}
+#versus div:nth-child(2) {
+	width: 10%;
+}
+#versus div:nth-child(3) {
+	width: 42%;
+	text-align: left;
 }
 
 #game_board {

@@ -38,7 +38,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	var boardUnwatch, playersUnwatch, gameConfiguredUnwatch;
 	var selfPlayerIndex, selfRef;
 	$scope.playerName;
-	setState('login');
+	setState($scope.states.login);
 
 	// FIREBASE (REMOTE) VARIABLES
 
@@ -74,11 +74,11 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	// FUNCTIONS
 
 	function setState(state) {
-		$scope.gameState = $scope.states[state];
+		$scope.gameState = state;
 	}
 
 	function isState(state) {
-		return $scope.gameState === $scope.states[state];
+		return $scope.gameState === state;
 	}
 
 	function checkForWin(event) {
@@ -108,7 +108,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 	function startGame() {
 		boardUnwatch = $scope.gameBoard.$watch(checkForWin);
-		setState('playing');
+		setState($scope.states.playing);
 		debug("Starting Game");
 	}
 
@@ -231,7 +231,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	}
 
 	function playersWatchCB(event) {
-		if (isState('waiting')) {
+		if (isState($scope.states.waiting)) {
 			// configuring player disconnected before finishing
 			if (event.event === "child_removed") {
 				// become the configuring player (player 0)
@@ -249,7 +249,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		}
 
 		// if opponent rage quits during game, you auto-win
-		if (isState('playing') && event.event === "child_removed") {
+		if (isState($scope.states.playing) && event.event === "child_removed") {
 			endGame(selfPlayerIndex);
 		}
 	}
@@ -258,22 +258,23 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		// stop watching for opponent DC now
 		playersUnwatch();
 		$scope.winnerIndex.$value = winner;
-		setState('gameover');
+		setState($scope.states.gameover);
 	}
 
 	function beginConfig() {
 		$scope.gameConfigured.$value = false;
-		setState('config');
+		setState($scope.states.config);
 	}
 
 	// player attempted a move by clicking cell on the board
 	$scope.cellClick = function(row, col) {
-		if (!isState('playing')) {
+		if (!isState($scope.states.playing)) {
 			debug("cellClick() was called from wrong state: " + $scope.gameState);
 			return;
 		}
 
 		if ($scope.isValidMove(row, col)) {
+			$scope.playClick();
 			// claim $scope cell. It now belongs to the current player.
 			$scope.gameBoard[row][col] = $scope.currentPlayerIndex.$value;
 			$scope.gameBoard.$save(row);
@@ -294,7 +295,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	};
 
 	$scope.getGameStatusMsg = function() {
-		if (!isState('playing') && !isState('gameover')) {
+		if (!isState($scope.states.playing) && !isState($scope.states.gameover)) {
 			return "";
 		}
 
@@ -323,7 +324,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	};
 
 	$scope.findGame = function () {
-		if (!isState('login')) {
+		if (!isState($scope.states.login)) {
 			debug("calling findGame() from wrong state: " + $scope.gameState);
 			return;
 		}
@@ -331,7 +332,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		// if there is no open spot, then go to game full screen
 		if ($scope.players.length >= 2) {
 			debug("Game is full");
-			setState('gamefull');
+			setState($scope.states.gamefull);
 			return;
 		}
 				
@@ -347,7 +348,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 		debug("Player Index: " + selfPlayerIndex);
 
 		// if name was left blank, give a default name
-		if (!$scope.playerName) { $scope.playerName = "Player" + (selfPlayerIndex + 1); }
+		if (!$scope.playerName) { $scope.playerName = getRandomName(); }
 
 		// mark the spot filled in firebase
 		$scope.players
@@ -370,7 +371,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 						startGame();
 					}
 					else {
-						setState('waiting');
+						setState($scope.states.waiting);
 						gameConfiguredRef.on('value', function(snapshot) {
 							if (snapshot.val() === true) {
 								gameConfiguredRef.off('value');
@@ -383,7 +384,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	};
 
 	$scope.config = function() {
-		if (!isState('config')) {
+		if (!isState($scope.states.config)) {
 			debug("config() was called from wrong state: " + $scope.gameState);
 			return;
 		}
@@ -398,7 +399,7 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 			startGame();
 		}
 		else {
-			setState('waiting');
+			setState($scope.states.waiting);
 		}
 	};
 
@@ -411,11 +412,14 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	$scope.restart = function() {
 		// remove player from the game to make a new empty slot
 		selfRef.remove();
-		setState('login');
+		setState($scope.states.login);
 	};
 
 	$scope.toggleBtnAnim = function(event) {
-		console.dir(event);
 		event.target.classList.toggle('pulse');
+	};
+
+	$scope.playClick = function() {
+		playClick();
 	};
 }

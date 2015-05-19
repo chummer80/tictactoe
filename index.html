@@ -26,14 +26,14 @@
 		<section id="login_screen" class="animated bounceInUp" ng-show="gameState == states.login">
 			<h1 id="login_instructions">Enter your name to join a game</h1>
 			<input id="name_textbox" type="text" placeholder="your name here" ng-model="playerName">
-			<button id="join_button" class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="findGame()">JOIN</button>
+			<button id="join_button" class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="playClick();findGame()">JOIN</button>
 		</section>
 
 
 		<section id="gamefull_screen" class="animated bounceInUp" ng-show="gameState == states.gamefull">
 			<img src="images/sadbaby_reverse.gif">
 			<h1>The game is full. Too bad.</h1>
-			<button class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="gameState = states.login">RETRY</button>
+			<button class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="playClick();gameState = states.login">RETRY</button>
 		</section>
 
 
@@ -43,7 +43,7 @@
 			<h3>Winning Line Length: </h3>
 			<input id="win_config_textbox" class="rounded_corners" type="number" ng-model="winLineLength.$value" min="3" max="{{(4 < gameBoardSize.$value) ? 4 : gameBoardSize.$value}}">
 			<!-- <h1 id="config_msg">{{getConfigMsg()}}</h1> -->
-			<button id="config_button" class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="config()">READY</button>
+			<button id="config_button" class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="playClick();config()">READY</button>
 		</section>
 
 
@@ -55,9 +55,9 @@
 
 		<section id="playing_screen" class="animated bounceInUp" ng-show="gameState == states.playing || gameState == states.gameover">
 			<div id="versus">
-				<span class="blue_fill_text">{{players[0].$value}}</span>
-				<span class="white_fill_text">&nbsp;vs.&nbsp;</span>
-				<span class="orange_fill_text">{{players[1].$value}}</span>
+				<div class="blue_fill_text">{{players[0].$value}}</div>
+				<div class="white_fill_text">&nbsp;vs.</div>
+				<div class="orange_fill_text">{{players[1].$value}}</div>
 			</div>
 			<table id="game_board">
 				<tr ng-repeat="row in gameBoard track by $index" ng-init="rowIndex = $index">
@@ -67,9 +67,11 @@
 				</tr>
 			</table>
 			<h1 id="status_msg">{{getGameStatusMsg()}}</h1>
-			<button class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="restart()" ng-show="gameState == states.gameover">GAME OVER</button>
+			<button class="rounded_corners blue_fill_text orange_fill_text_active animated infinite" ng-mouseenter="toggleBtnAnim($event)" ng-mouseleave="toggleBtnAnim($event)" ng-click="playClick();restart()" ng-show="gameState == states.gameover">GAME OVER</button>
 
 		</section>
 	</main>
+
+	<audio id="click_sound" src="sounds/click.wav"></audio>
 </body>
 </html>
