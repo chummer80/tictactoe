@@ -37,6 +37,11 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 
 	var boardUnwatch, playersUnwatch, gameConfiguredUnwatch;
 	var selfPlayerIndex, selfRef;
+	var firebaseSwapObj = {
+		players: null,
+		board: null,
+		winnerIndex: null
+	};
 	$scope.playerName;
 	setState($scope.states.login);
 
@@ -257,6 +262,26 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	function endGame(winner) {
 		// stop watching for opponent DC now
 		playersUnwatch();
+
+		// Store references to some firebase objects in a swap object and then
+		// make copies of the objects to drive the view. This way the player
+		// can be disconnected from firebase and the firebase data can be reset
+		// without messing up the view of the game over screen.
+
+		// store firebase obj references
+		firebaseSwapObj.players = $scope.players;
+		firebaseSwapObj.board = $scope.gameBoard;
+		firebaseSwapObj.winnerIndex = $scope.winnerIndex;
+
+		// put (unbound) copies of the firebase objects in the scope variables
+		$scope.players = angular.copy($scope.players);
+		$scope.gameBoard = angular.copy($scope.gameBoard);
+		$scope.winnerIndex = angular.copy($scope.winnerIndex);
+
+
+		// remove player from the game to make a new empty slot
+		selfRef.remove();
+
 		$scope.winnerIndex.$value = winner;
 		setState($scope.states.gameover);
 	}
@@ -410,8 +435,12 @@ function GameController($scope, $firebaseObject, $firebaseArray) {
 	};
 
 	$scope.restart = function() {
-		// remove player from the game to make a new empty slot
-		selfRef.remove();
+		// game over state is over, so using firebaseSwapObj to drive the view
+		// is no longer needed. Switch back to the bound firebase objects.
+		$scope.players = firebaseSwapObj.players;
+		$scope.gameBoard = firebaseSwapObj.board;
+		$scope.winnerIndex = firebaseSwapObj.winnerIndex;
+
 		setState($scope.states.login);
 	};
 
