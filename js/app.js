@@ -1,13 +1,11 @@
 angular.module('tictactoe', ['firebase']);
 
-var clickAudio = document.getElementById('click_sound');
-
 function debug(msg) {
 	console.log(msg);
 }
 
 function playClick() {
-	clickAudio.play();
+	document.getElementById('click_sound').play();
 }
 
 function getRandomName() {
@@ -33,3 +31,12 @@ function getRandomName() {
 	
 	return nameList[randomIndex];
 }
+
+angular.element(document).ready(function () {
+	var loadingImg = document.getElementById('loading-img');
+	angular.element(loadingImg).addClass('animated fadeOut');
+
+	setTimeout(function() {
+		angular.element(loadingImg).css("display", "none");	
+	}, 500);
+});
